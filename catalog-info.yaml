@@ -2,7 +2,7 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: sample-app
-  title: Node.js App Template
+  title: ALM Node.js App Template
   description: Creates a basic Node.js application 4 testing. Let's check if works
   tags:
     - javascript
