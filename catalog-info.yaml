@@ -2,11 +2,11 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 # some metadata about the template itself
 metadata:
-  name: v1beta3-demo
-  title: Test Action template
-  description: scaffolder v1beta3 template demo
+  name: alm-demo
+  title: Test Action template 4 ALM Test by valerio
+  description: alm-demo test by valerio
 spec:
-  owner: backstage/techdocs-core
+  owner: paesanv/backstage-test01
   type: service
 
   # these are the steps which are rendered in the frontend with the form input
