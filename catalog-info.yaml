@@ -1,0 +1,52 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: sample-app
+  title: Node.js App Template
+  description: Creates a basic Node.js application 4 testing. Let's check if works
+  tags:
+    - javascript
+    - nodejs
+spec:
+  owner: ALM :)
+  type: service
+
+  parameters:
+    - title: Project Name
+      type: string
+      required: true
+      description: The name of the project
+
+    - title: Project Description
+      type: textarea
+      required: true
+      description: A description for the project
+
+    - title: Repository URL
+      type: string
+      required: true
+      description: URL of the Git repository where the project will be stored
+
+  steps:
+    - id: fetch
+      name: Fetch template
+      action: fetch:template
+      input:
+        url: ./template # path to the template folder
+        copyWithoutRender:
+          - 'package.json'
+
+    - id: publish
+      name: Publish to Git
+      action: publish:github
+      input:
+        repoUrl: '{{ parameters.repoUrl }}'
+        description: '{{ parameters.description }}'
+        repoVisibility: private
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
+        catalogInfoPath: /catalog-info.yaml
