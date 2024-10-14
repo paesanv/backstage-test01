@@ -1,52 +1,28 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: backstage.io/v1alpha1
+kind: Component
 metadata:
-  name: sample-app
-  title: ALM Node.js App Template
-  description: Creates a basic Node.js application 4 testing. Let's check if works
+  name: {{ parameters.name }}-service
+  description: {{ parameters.description }}
   tags:
-    - javascript
     - nodejs
+    - express
 spec:
-  owner: ALM :)
   type: service
+  lifecycle: production
+  owner: {{ parameters.owner }}
 
-  parameters:
-    - title: Project Name
-      type: string
-      required: true
-      description: The name of the project
-
-    - title: Project Description
-      type: textarea
-      required: true
-      description: A description for the project
-
-    - title: Repository URL
-      type: string
-      required: true
-      description: URL of the Git repository where the project will be stored
-
-  steps:
-    - id: fetch
-      name: Fetch template
-      action: fetch:template
-      input:
-        url: ./template # path to the template folder
-        copyWithoutRender:
-          - 'package.json'
-
-    - id: publish
-      name: Publish to Git
-      action: publish:github
-      input:
-        repoUrl: '{{ parameters.repoUrl }}'
-        description: '{{ parameters.description }}'
-        repoVisibility: private
-
-    - id: register
-      name: Register in Backstage
-      action: catalog:register
-      input:
-        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
-        catalogInfoPath: /catalog-info.yaml
+---
+apiVersion: backstage.io/v1alpha1
+kind: ALMIntegration
+metadata:
+  name: {{ parameters.name }}-alm
+  description: ALM integration for {{ parameters.name }}
+spec:
+  owner: {{ parameters.owner }}
+  integration:
+    type: github
+    url: '{{ parameters.repoUrl }}'
+    repository: '{{ parameters.name }}'
+    issueTracker: true
+    ci: true
+    scm: github
