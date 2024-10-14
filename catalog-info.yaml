@@ -1,28 +1,77 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: {{ parameters.name }}-service
-  description: {{ parameters.description }}
+  name: alm-java-template
+  description: Template Java per un repository ALM
   tags:
-    - nodejs
-    - express
+    - java
+    - alm
+  annotations:
+    backstage.io/managed-by-location: url:https://github.com/your-org/your-repo/blob/main/catalog-info.yaml
+    backstage.io/managed-by: https://github.com/your-org/your-repo
 spec:
-  type: service
-  lifecycle: production
-  owner: {{ parameters.owner }}
+  type: template
+  lifecycle: experimental
+  owner: team-name
+  implementsApis:
+    - backstage.io/scaffolder-template
 
 ---
-apiVersion: backstage.io/v1alpha1
-kind: ALMIntegration
+
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
 metadata:
-  name: {{ parameters.name }}-alm
-  description: ALM integration for {{ parameters.name }}
+  name: alm-java-repo
+  title: Java Repository Template
+  description: Crea una struttura base per un'applicazione Java.
+  tags:
+    - java
+    - repository
+    - alm
 spec:
-  owner: {{ parameters.owner }}
-  integration:
-    type: github
-    url: '{{ parameters.repoUrl }}'
-    repository: '{{ parameters.name }}'
-    issueTracker: true
-    ci: true
-    scm: github
+  owner: team-name
+  type: service
+
+  parameters:
+    - title: Project Name
+      type: string
+      required: true
+      description: Il nome del progetto
+
+    - title: Repository URL
+      type: string
+      required: true
+      description: URL del repository Git ALM dove verrà creato il progetto
+
+    - title: Package Name
+      type: string
+      required: true
+      description: Il package name per la nuova applicazione Java
+
+  steps:
+    - id: fetch
+      name: Fetch template
+      action: fetch:template
+      input:
+        url: ./template # Percorso locale alla cartella template
+
+    - id: execute
+      name: Esegui comando
+      action: execute:shellCommand
+      input:
+        command: mvn clean package # Esegue il packaging Maven per il progetto
+
+    - id: publish
+      name: Publish to Git
+      action: publish:github
+      input:
+        repoUrl: '{{ parameters.repoUrl }}'
+        description: "Repository Java generated from ALM template"
+        repoVisibility: private
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
+        catalogInfoPath: /catalog-info.yaml
