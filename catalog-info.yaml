@@ -1,81 +1,67 @@
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  name: alm-java-template-sviluppo
-  description: Template Java per un repository ALM
-  tags:
-    - java
-    - alm
-  annotations:
-    backstage.io/managed-by-location: url:https://github.com/paesanv/backstage-test01/blob/main/catalog-info.yaml
-    backstage.io/managed-by: https://github.com/paesanv/backstage-test01
-spec:
-  type: template
-  lifecycle: experimental
-  owner: ALM Team
-  implementsApis:
-    - backstage.io/scaffolder-template
----
-
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
+# some metadata about the template itself
 metadata:
-  name: alm-java-repo
-  title: Java Repository Template
-  description: Crea una struttura base per un'applicazione Java.
-  tags:
-    - java
-    - repository
-    - alm
+  name: v1beta3-demo
+  title: Test Action template
+  description: scaffolder v1beta3 template demo
 spec:
-  owner: ALM
+  owner: backstage/techdocs-core
   type: service
 
+  # these are the steps which are rendered in the frontend with the form input
   parameters:
-    - title: Project Name
-      type: string
-      required: true
-      description: Il nome del progetto
+    - title: Fill in some steps
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
 
-    - title: Repository URL
-      type: string
-      required: true
-      description: URL del repository Git ALM dove verrà creato il progetto
-
-    - title: Package Name
-      type: string
-      required: true
-      description: Il package name per la nuova applicazione Java
-
-    - title: Description # Aggiunta del parametro description per il package.json
-      type: string
-      required: true
-      description: La descrizione del progetto
-
+  # here's the steps that are executed in series in the scaffolder backend
   steps:
-    - id: fetch
-      name: Fetch template
+    - id: fetch-base
+      name: Fetch Base
       action: fetch:template
       input:
-        url: ./template # Percorso locale alla cartella template
+        url: ./template
+        values:
+          name: ${{ parameters.name }}
 
-    - id: execute
-      name: Esegui comando
-      action: execute:shellCommand
+    - id: fetch-docs
+      name: Fetch Docs
+      action: fetch:plain
       input:
-        command: mvn clean package # Esegue il packaging Maven per il progetto
+        targetPath: ./community
+        url: https://github.com/backstage/community/tree/main/backstage-community-sessions
 
     - id: publish
-      name: Publish to Git
+      name: Publish
       action: publish:github
       input:
-        repoUrl: '{{ parameters.repoUrl }}'
-        description: "Repository Java generated from ALM template"
-        repoVisibility: private
+        allowedHosts: ['github.com']
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
 
     - id: register
-      name: Register in Backstage
+      name: Register
       action: catalog:register
       input:
-        repoContentsUrl: '{{ steps.publish.output.repoContentsUrl }}'
-        catalogInfoPath: /catalog-info.yaml
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
